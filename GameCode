@@ -1,0 +1,228 @@
+import pygame
+import random
+import time
+ # importo el modulo
+
+class Cursor(pygame.Rect):
+    def __init__(self):
+        pygame.Rect.__init__(self,0,0,1,1)
+    def update(self):
+        self.left,self.top=pygame.mouse.get_pos()
+
+class Boton(pygame.sprite.Sprite):
+    def __init__(self,imagen1,imagen2,x=200,y=200):
+        self.imagen_normal=imagen1
+        self.imagen_seleccion=imagen2
+        self.imagen_actual=self.imagen_normal
+        self.rect=self.imagen_actual.get_rect()
+        self.rect.left,self.rect.top=(x,y)
+        
+    def update(self,pantalla,cursor):
+        if cursor.colliderect(self.rect):
+            self.imagen_actual=self.imagen_seleccion
+        else: self.imagen_actual=self.imagen_normal
+        
+        pantalla.blit(self.imagen_actual,self.rect)
+         
+
+#funcion main
+def main():
+    pygame.init() # inicializo el modulo
+    
+    # fijo las dimensiones de la pantalla a 300,300 y creo una superficie que va ser la principal
+    pantalla=pygame.display.set_mode((500,400))
+    
+    pygame.display.set_caption("Juego") # Titulo de la Ventana
+    #creo un reloj para controlar los fps
+    reloj1=pygame.time.Clock()
+    
+    rojo1=pygame.image.load("C:\Users\prueba\Downloads\BotonOff.jpg")
+    rojo2=pygame.image.load("C:\Users\prueba\Downloads\Boton.jpg.png")
+    azul1=pygame.image.load("C:\Users\prueba\Downloads\Boton2.png")   
+    sonido1=pygame.mixer.Sound("C:\Users\prueba\Downloads\Laser.wav")
+    boton1=Boton(rojo1,rojo2,200,100)
+    cursor1=Cursor()
+    
+    blanco=(255,255,255) # color blanco en RGB
+    rojo=(200,0,0)
+    azul=(0,0,200)
+    colordefondo=blanco
+    
+    
+    salir=False
+    #LOOP PRINCIPAL
+    while salir!=True:
+        #recorro todos los eventos producidos
+        #en realidad es una lista
+        for event in pygame.event.get():
+            if event.type==pygame.MOUSEBUTTONDOWN:
+                if cursor1.colliderect(boton1.rect):
+                    sonido1.play()
+                    time.sleep(1.5)
+                    salir=True
+                
+                    
+            
+            # pygame.QUIT( cruz de la ventana)
+            if event.type == pygame.QUIT:
+                salir=True
+        
+        reloj1.tick(20)#operacion para que todo corra a 20fps
+        pantalla.fill(colordefondo) # pinto la superficie de blanco        
+        cursor1.update()
+        boton1.update(pantalla,cursor1)
+
+        
+        pygame.display.update() #actualizo el display
+        
+    pygame.quit()
+    
+main() 
+
+
+class Recs(object):
+    def __init__(self,numeroinicial):
+        self.lista=[]
+        for x in range(numeroinicial):
+            #creo un rect random
+            leftrandom=random.randrange(2,560)
+            toprandom=random.randrange(-580,-10)
+            width=random.randrange(10,30)
+            height=random.randrange(15,30)
+            self.lista.append(pygame.Rect(leftrandom,toprandom,width,height))            
+    def reagrear(self):
+        for x in range(len(self.lista)):
+            if self.lista[x].top>482:
+                leftrandom=random.randrange(2,560)
+                toprandom=random.randrange(-580,-10)
+                width=random.randrange(10,30)
+                height=random.randrange(15,30)
+                self.lista[x]=(pygame.Rect(leftrandom,toprandom,width,height)) 
+
+    def agregarotro(self):
+        pass
+    def mover(self):
+        for rectangulo in self.lista:
+            rectangulo.move_ip(0,2)
+    def pintar(self,superficie):
+        for rectangulo in self.lista:
+            pygame.draw.rect(superficie,(200,0,0),rectangulo)
+            
+class Player(pygame.sprite.Sprite):
+    def __init__(self,imagen):
+        self.imagen=imagen
+
+        self.rect=self.imagen.get_rect()
+        self.rect.top,self.rect.left=(100,200)
+    def mover(self,vx,vy):
+        self.rect.move_ip(vx,vy)
+        if self.rect.left<0:
+            vx=-vx
+        self.rect.move_ip(vx,vy)
+
+    def update(self,superficie):
+        superficie.blit(self.imagen,self.rect)
+
+def colision(player,recs):
+    for rec in recs.lista:
+        if player.rect.colliderect(rec):
+            return True
+    return False
+            
+
+def main():
+    import pygame
+    
+    pygame.init()
+    pantalla=pygame.display.set_mode((600,480))
+    salir=False
+    reloj1= pygame.time.Clock()
+    imagen1=pygame.image.load("C:\Users\prueba\Downloads\Nave4.png").convert_alpha()
+    imagenexplosion=pygame.image.load("C:\Users\prueba\Downloads\Explosion.png").convert_alpha()
+    imagenfondo=pygame.image.load("C:\Users\prueba\Downloads\Fondo.png").convert_alpha()
+    pygame.mixer.music.load("C:\Users\prueba\Downloads\Musica.mp3")
+    sonido1=pygame.mixer.Sound("C:\Users\prueba\Downloads\BOOM!.wav.wav")
+    recs1=Recs(25)
+    player1=Player(imagen1)
+    
+    #variables aux
+    player1=Player(imagen1)
+    vx,vy=0,0
+    velocidad=3.5
+    leftsigueapretada,rightsigueapretada,upsigueapretada,downsigueapretada=False,False,False,False
+    colisiono=False
+    
+    pygame.mixer.music.play(2)
+    while salir!=True:#LOOP PRINCIPAL
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                salir=True
+            if colisiono==False:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        leftsigueapretada=True
+                        vx=-velocidad
+                    if event.key == pygame.K_RIGHT:
+                        rightsigueapretada=True
+                        vx=velocidad
+                    if event.key== pygame.K_UP:
+                        upsigueapretada=True
+                        vy=-velocidad
+                        
+                    if event.key == pygame.K_DOWN:
+                        downsigueapretada=True
+                        vy=velocidad
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        leftsigueapretada=False
+                        if rightsigueapretada:vx=velocidad
+                        else:vx=0
+                    if event.key == pygame.K_RIGHT:
+                        rightsigueapretada=False
+                        if leftsigueapretada:vx=-velocidad
+                        else:vx=0
+                    if event.key== pygame.K_UP:
+                        upsigueapretada=False
+                        if downsigueapretada:vy=velocidad
+                        else:vy=-0
+                    if event.key == pygame.K_DOWN:
+                        downsigueapretada=False
+                        if upsigueapretada:vy=-velocidad
+                        else:vy=0                    
+        
+        reloj1.tick(20)
+        
+
+        if colision(player1,recs1):
+            sonido1.play()
+            colisiono=True
+            player1.imagen=imagenexplosion
+            pygame.mixer.music.stop()
+            time.sleep(0.7)
+            salir=True
+            
+        if colisiono==False:    
+            recs1.mover()
+            player1.mover(vx, vy)     
+               
+        pantalla.blit(imagenfondo,(0,0))
+        recs1.pintar(pantalla)
+        player1.update(pantalla)
+        pygame.display.update()
+        recs1.reagrear()        
+    pygame.quit()
+    
+
+main()
+
+
+
+
+#C:\Users\prueba\Downloads\Nave4.png
+#C:\Users\prueba\Downloads\Explosion.png
+#C:\Users\prueba\Downloads\Musica.mp3
+#C:\Users\prueba\Downloads\BOOM!.wav.wav
+#C:\Users\prueba\Downloads\Fondo.png
+#C:\Users\prueba\Downloads\BotonOff.jpg
+#C:\Users\prueba\Downloads\Boton.jpg.png
+#C:\Users\prueba\Downloads\Boton2.png
